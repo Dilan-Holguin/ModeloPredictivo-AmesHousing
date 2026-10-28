@@ -2,9 +2,9 @@ import argparse
 import sys
 import pandas as pd
 from src.data import load_data, validate_columns
-from src.preprocessing import limpiar_faltantes, inverse_target
+from src.preprocessing import limpiar_faltantes
 from src.model_io import load_model
-from src.config import FEATURE_COLUMNS  
+from src.config import FEATURE_COLUMNS
 
 def main():
     parser = argparse.ArgumentParser(description="Predicción de precios de vivienda.")
@@ -22,8 +22,7 @@ def main():
         df_clean = limpiar_faltantes(df)
         pipeline = load_model(args.model)
 
-        prediccion_log = pipeline.predict(df_clean)
-        prediccion_dolares = inverse_target(prediccion_log)
+        prediccion_dolares = pipeline.predict(df_clean)
 
         df_out = pd.DataFrame({'Id': ids, 'prediccion': prediccion_dolares})
         df_out.to_csv(args.output, index=False)
