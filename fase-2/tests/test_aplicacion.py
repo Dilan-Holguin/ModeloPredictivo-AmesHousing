@@ -11,7 +11,7 @@ def test_entrenar_y_guardar(tmp_path):
         sys.executable, "train.py",
         "--data", "tests/sample_train.csv",
         "--target", "SalePrice",
-        "--out", str(out_dir),
+        "--output-dir", str(out_dir),
         "--version", "v_test",
         "--seed", "42"
     ], capture_output=True)
@@ -24,7 +24,7 @@ def test_entrenar_y_guardar(tmp_path):
 def test_cargar_y_predecir(tmp_path):
     out_dir = tmp_path / "models"
     out_dir.mkdir(exist_ok=True)
-    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--out", str(out_dir), "--version", "v_test", "--seed", "42"])
+    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--output-dir", str(out_dir), "--version", "v_test", "--seed", "42"])
 
     in_csv = "data/ejemplo_prediccion.csv"
     out_csv = tmp_path / "prediccion_out.csv"
@@ -45,7 +45,7 @@ def test_cargar_y_predecir(tmp_path):
 def test_nulos_permitidos(tmp_path):
     out_dir = tmp_path / "models"
     out_dir.mkdir(exist_ok=True)
-    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--out", str(out_dir), "--version", "v_test"])
+    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--output-dir", str(out_dir), "--version", "v_test"])
 
     df_in = pd.read_csv("data/ejemplo_prediccion.csv")
     df_in.loc[0, 'MasVnrArea'] = np.nan 
@@ -82,13 +82,13 @@ def test_versionamiento_no_sobrescribe(tmp_path):
     out_dir = tmp_path / "models"
     out_dir.mkdir()
     
-    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--out", str(out_dir), "--version", "v_test"])
+    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--output-dir", str(out_dir), "--version", "v_test"])
     
     result = subprocess.run([
         sys.executable, "train.py",
         "--data", "tests/sample_train.csv",
         "--target", "SalePrice",
-        "--out", str(out_dir),
+        "--output-dir", str(out_dir),
         "--version", "v_test"
     ], capture_output=True)
     
