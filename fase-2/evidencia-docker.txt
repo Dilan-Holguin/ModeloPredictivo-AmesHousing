@@ -1,0 +1,47 @@
+Evidencia de ejecucion en Docker (PowerShell, Docker Desktop, imagen modelos-fase2:1.0)
+
+=== python --version (en la imagen) y versiones
+Python 3.12.16 | scikit-learn 1.9.1 | pandas 2.3.3 | numpy 2.5.4 | joblib 1.6.0
+
+=== docker run --rm modelos-fase2:1.0 python -m pytest -q
+.....                                                                    [100%]
+5 passed in 15.87s
+
+=== train.py en Docker (GIT_COMMIT=0d9abaefaddf7a1d906cc1950cbfddc9720b8eae)
+Versión: v-docker
+Observaciones: 1460 (entrenamiento=1168, prueba=292)
+Métricas del modelo (dólares): {"mae": 17895.73243159452, "rmse": 27522.368769043158, "r2": 0.9012452975012406}
+Métricas del baseline (dólares): {"mae": 59931.23802529144, "rmse": 88270.853654778, "r2": -0.01582949596619998}
+Generado: models/v-docker/modelo.joblib
+Generado: models/v-docker/metrics.json
+Generado: models/v-docker/metadata.json
+
+=== persistencia en el anfitrion: models/v-docker
+metadata.json
+metrics.json
+modelo.joblib
+git_commit en metadata.json: 0d9abaefaddf7a1d906cc1950cbfddc9720b8eae
+
+=== train.py con id repetido (no sobrescribe)
+Error: La versión 'v-docker' ya existe; no se sobrescribió.
+ 
+codigo de salida: 2
+
+=== predict.py en Docker
+codigo de salida: 0
+Id,prediccion
+1,208269.36445905655
+2,205971.34297158555
+3,222862.819288998
+4,183734.1328415192
+5,302836.19295938156
+
+=== entrada invalida (falta GrLivArea)
+docker : Error de validación: Faltan columnas requeridas: GrLivArea
+codigo de salida: 1
+outputs/malo.csv existe: False
+
+=== --help
+usage: train.py [-h] --data DATA [--target TARGET] [--output-dir OUTPUT_DIR]
+                --version VERSION [--seed SEED] [--test-size TEST_SIZE]
+
