@@ -1,0 +1,20 @@
+# Entornos y caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Control de versiones y credenciales
+.git/
+.gitignore
+.env
+.env.*
+*.pem
+*.key
+
+# Resultados generados y artefactos que se montan como volumen
+outputs/
+models/
