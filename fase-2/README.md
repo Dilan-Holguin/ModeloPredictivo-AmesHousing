@@ -139,6 +139,8 @@ docker run --rm `
   modelos-fase2:1.0 python predict.py --model models/v-docker/modelo.joblib --input data/ejemplo_prediccion.csv --output outputs/predicciones_docker.csv
 ```
 
+Evidencia de la verificación completa (build, `pytest`, entrenamiento, persistencia, id repetido, predicción y entrada inválida) en [`evidencia-docker.txt`](evidencia-docker.txt).
+
 La imagen no entrena durante el build ni define `ENTRYPOINT`: el comando se indica en cada `docker run`. `models/v-docker/` se genera localmente y no se versiona; `models/v1` y `models/v2` sí.
 
 ## Pruebas
