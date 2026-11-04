@@ -24,11 +24,6 @@ git_commit en metadata.json: 0d9abaefaddf7a1d906cc1950cbfddc9720b8eae
 
 === train.py con id repetido (no sobrescribe)
 Error: La versión 'v-docker' ya existe; no se sobrescribió.
-En línea: 19 Carácter: 6
-+ $o = docker run --rm -v "${PWD}/data:/app/data:ro" -v "${PWD}/models: ...
-+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (Error: La versi...e sobrescribió.:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
  
 codigo de salida: 2
 
