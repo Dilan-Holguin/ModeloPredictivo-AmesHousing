@@ -157,14 +157,16 @@ Cinco pruebas en `tests/test_aplicacion.py`, con `tmp_path` (no tocan los modelo
 
 ## Resultados
 
-Las métricas salen de `models/<id>/metrics.json`, no de copiar números a mano. Ejemplo de la ejecución en Docker (`v-docker`, seed 42, 1.168 filas de entrenamiento y 292 de prueba, 60 predictoras):
+Las métricas salen de `models/<id>/metrics.json`, no de copiar números a mano. Conjunto de prueba de 292 viviendas (1.168 de entrenamiento), 60 predictoras:
 
-| Modelo | MAE ($) | RMSE ($) | R² ($) | RMSE (log) | R² (log) |
-|---|---:|---:|---:|---:|---:|
-| Baseline (media en log) | 59.931 | 88.271 | -0,016 | 0,433 | -0,006 |
-| **Regresión Lineal** | **17.896** | **27.522** | **0,901** | **0,134** | **0,904** |
+| Versión | Modelo | MAE ($) | RMSE ($) | R² ($) | RMSE (log) | R² (log) |
+|---|---|---:|---:|---:|---:|---:|
+| v1 (seed 42) | Baseline (media en log) | 59.931 | 88.271 | -0,016 | 0,433 | -0,006 |
+| v1 (seed 42) | **Regresión Lineal** | **17.896** | **27.522** | **0,901** | **0,134** | **0,904** |
+| v2 (seed 7) | Baseline (media en log) | 59.762 | 87.157 | -0,050 | 0,410 | -0,003 |
+| v2 (seed 7) | **Regresión Lineal** | **19.017** | **29.208** | **0,882** | **0,139** | **0,884** |
 
-Al excluir `SaleType` y `SaleCondition` y corregir `Id`, los valores difieren levemente de la Fase 1 (MAE 17.854, R² 0,902); la especificación no exige mejorarlos.
+La ejecución dentro de Docker (`v-docker`, seed 42) reproduce exactamente las métricas de `v1`. Al excluir `SaleType` y `SaleCondition` y corregir `Id`, los valores difieren levemente de la Fase 1 (MAE 17.854, R² 0,902); la especificación no exige mejorarlos. Que v2 sea peor que v1 solo refleja otra partición aleatoria.
 
 ## Limitaciones
 
