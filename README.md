@@ -18,14 +18,16 @@ Los datos provienen de la competencia de Kaggle [House Prices: Advanced Regressi
 ├── requirements.txt
 └── fase-1/
     ├── train.csv            # Conjunto de datos (Kaggle, train)
-    ├── notebook.ipynb       # Notebook único y ejecutable con las 12 secciones (entregable principal)
+    ├── notebookfinal.ipynb  # Notebook único y ejecutable con las 12 secciones (entregable principal)
     ├── EDAnotebook.ipynb    # Secciones 1-4: introducción, datos, EDA y selección de columnas
     ├── PERSONA2.ipynb       # Secciones 5-8: preparación, split, fuga de información y modelo base
     ├── PERSONA3.ipynb       # Secciones 9-12: regresión lineal, evaluación, interpretación y guardado
     └── modelo.joblib        # Modelo final entrenado (Pipeline preprocesamiento + Regresión Lineal)
 ```
 
-`notebook.ipynb` integra, en un solo archivo y en orden, el contenido de los tres notebooks individuales, y es el que debe ejecutarse de principio a fin para reproducir todo el análisis. Los notebooks individuales (`EDAnotebook.ipynb`, `PERSONA2.ipynb`, `PERSONA3.ipynb`) se conservan como registro del trabajo de cada integrante durante el desarrollo.
+La **Fase 2** (scripts de entrenamiento y predicción, versionamiento, pruebas y Docker) vive en `fase-2/`; ver `fase-2/README.md`. Entrega: etiqueta `entrega-2`.
+
+`notebookfinal.ipynb` integra, en un solo archivo y en orden, el contenido de los tres notebooks individuales, y es el que debe ejecutarse de principio a fin para reproducir todo el análisis. Los notebooks individuales (`EDAnotebook.ipynb`, `PERSONA2.ipynb`, `PERSONA3.ipynb`) se conservan como registro del trabajo de cada integrante durante el desarrollo.
 
 ## Metodología (Fase 1)
 
@@ -56,13 +58,13 @@ Conjunto de prueba (292 viviendas, 62 columnas predictoras → 236 tras codifica
 - Principales dificultades: un fold de validación cruzada con error notablemente más alto (posible efecto de los outliers de `GrLivArea` señalados en el EDA), alta dimensionalidad tras el one-hot encoding (236 columnas para 1.168 filas de entrenamiento) con categorías poco representadas, multicolinealidad residual entre algunas predictoras, y mayor error en viviendas con condición de venta atípica (`SaleCondition` distinto de `Normal`).
 - Mejoras propuestas: investigar el efecto de las ventas atípicas, regularización (Ridge/Lasso), tratar explícitamente los outliers de `GrLivArea`, ingeniería de características, y comparar contra modelos no lineales en fases siguientes.
 
-El análisis completo está en la sección 11 de `fase-1/notebook.ipynb`.
+El análisis completo está en la sección 11 de `fase-1/notebookfinal.ipynb`.
 
 ## Cómo ejecutar
 
 ### Google Colab (recomendado)
 
-Abrir `fase-1/notebook.ipynb` con el botón *Open in Colab* y ejecutar todas las celdas en orden (`Runtime > Run all`). El notebook es autocontenido: no depende de los notebooks individuales.
+Abrir `fase-1/notebookfinal.ipynb` con el botón *Open in Colab* y ejecutar todas las celdas en orden (`Runtime > Run all`). El notebook es autocontenido: no depende de los notebooks individuales.
 
 ### Local
 
@@ -73,7 +75,7 @@ pip install -r requirements.txt
 jupyter notebook
 ```
 
-Ejecutar `fase-1/notebook.ipynb` desde la **raíz del repositorio** (las rutas son relativas, p. ej. `fase-1/train.csv`).
+Ejecutar `fase-1/notebookfinal.ipynb` desde la **raíz del repositorio** (las rutas son relativas, p. ej. `fase-1/train.csv`).
 
 > **Nota:** se requiere `pandas < 3`. En pandas 3 las columnas de texto dejan de ser de tipo `object`, y `select_dtypes(include=['object'])` de la sección 7 no las detectaría.
 
@@ -93,7 +95,7 @@ precio = np.expm1(modelo.predict(df_seleccionado.drop(columns=['SalePrice', 'Sal
 print(precio)
 ```
 
-El archivo incluido se generó con `scikit-learn` 1.9. Si al cargarlo hay errores por diferencia de versión (p. ej. en Colab), basta con volver a ejecutar la sección 12 para regenerarlo.
+El archivo incluido se generó con `scikit-learn` 1.9. Si al cargarlo hay errores por diferencia de versión (p. ej. en Colab), hay que regenerarlo: ejecutar la sección 12 del notebook (Fase 1) o, para la Fase 2, volver a correr `fase-2/train.py` (ver `fase-2/README.md`). Abrir o leer el notebook no regenera el modelo.
 
 ## Flujo de trabajo
 
@@ -103,4 +105,4 @@ El archivo incluido se generó con `scikit-learn` 1.9. Si al cargarlo hay errore
 | Persona 2 | 5-8 (preparación, split, fuga de información, modelo base) | `feature/preparacion-y-modelo-base` |
 | Persona 3 | 9-12 (regresión lineal, evaluación, interpretación, `joblib`) + README | `feature/modelo-y-evaluacion` |
 
-Cada rama se integró mediante Pull Request revisado por la Persona 1. Los tres notebooks se combinaron en `notebook.ipynb` como entregable único y ejecutable, integrado en `develop` y posteriormente en `main`.
+Cada rama se integró mediante Pull Request revisado por la Persona 1. Los tres notebooks se combinaron en `notebookfinal.ipynb` como entregable único y ejecutable, integrado en `develop` y posteriormente en `main`.

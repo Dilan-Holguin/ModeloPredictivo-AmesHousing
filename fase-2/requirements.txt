@@ -1,0 +1,8 @@
+# Python 3.12 (D12). Versiones exactas: un .joblib solo es fiable con la version que lo creo.
+pandas==2.3.3
+numpy==2.5.4
+scikit-learn==1.9.1
+scipy==1.18.1
+threadpoolctl==3.7.0
+joblib==1.6.0
+pytest==9.2.0
