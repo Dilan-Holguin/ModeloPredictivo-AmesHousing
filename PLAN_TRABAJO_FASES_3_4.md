@@ -1,100 +1,105 @@
 # Plan de trabajo para las fases 3 y 4
 
-Este plan convierte la retroalimentación de la Fase 2 y las especificaciones del profesor en tareas asignadas y una secuencia de integración. La Fase 2 obtuvo 100/100 (5,00/5,00) y el profesor no señaló faltantes sustanciales. La prioridad es conservar su comportamiento y añadir la API y el monitoreo pedidos.
+Este plan organiza el trabajo del equipo en **un PR por integrante**, incluyendo en cada PR las tareas asignadas de las dos fases. La Fase 2 obtuvo 100/100 (5,00/5,00) y el profesor no señaló faltantes sustanciales. La prioridad es conservar lo entregado y añadir la API y el monitoreo pedidos.
 
-## Reglas que deben mantenerse
+## Requisitos que vienen del profesor
 
-- Conservar `fase-1/` y `fase-2/`, los modelos v1 y v2, sus métricas y metadatos.
-- Mantener las reglas de faltantes estructurales en sótanos, garajes y mampostería. No cambiar el algoritmo ni las métricas de referencia como parte de estas fases.
-- Cuando cambie la aplicación, volver a ejecutar pruebas y comparar la predicción de una entrada conocida con la versión anterior. Explicar cualquier diferencia.
-- Cada integrante trabaja en su rama y abre un PR revisado hacia `develop`. Al finalizar, integrar `develop` en `main` y marcar la entrega con un commit o etiqueta.
+### Mantener la Fase 2
 
-## Preparación del repositorio
+- Conservar `fase-1/`, `fase-2/`, los modelos v1 y v2, sus métricas y metadatos.
+- Mantener el tratamiento de ausencias estructurales en sótanos, garajes y mampostería.
+- Al modificar la aplicación, repetir las pruebas y comparar una predicción conocida con la versión previa. Explicar cualquier diferencia.
+- No es necesario cambiar de algoritmo ni mejorar las métricas para estas entregas.
 
-Antes de iniciar la Fase 3, se sincronizó `main` con `develop` mediante el PR #16. `develop` ya incluye los cambios finales de Fase 2 en `fase-2/predict.py` y `fase-2/tests/test_aplicacion.py` y queda como base común para las nuevas ramas.
+### Fase 3: API REST
 
-## Reparto propuesto
+- Agregar `fase-3/` sin eliminar las carpetas anteriores. Se permite FastAPI o Flask.
+- Exponer `GET /health`, `POST /predict` y `POST /train`.
+- `/predict` recibe las variables predictoras, reutiliza el preprocesamiento y el modelo guardado, y devuelve predicción y versión usada. No recibe `SalePrice`.
+- Validar campos obligatorios y tipos; aceptar nulos según las reglas de Fase 2; devolver un error comprensible al faltar el modelo configurado.
+- `/train` reutiliza la configuración y datos del proyecto, guarda modelo, métricas y metadatos con una versión nueva y conserva las anteriores.
+- Incluir tres pruebas pytest: salud, predicción válida con versión y rechazo de un campo obligatorio ausente. Para `/train`, documentar una prueba manual que compruebe la persistencia de la nueva versión.
+- Incluir en `fase-3/` el código, dependencias, Dockerfile actualizado, pruebas, README y un cliente sencillo que envíe una predicción realista.
 
-Los documentos del profesor describen entregables y pruebas, pero no asignan tareas por persona. Este reparto es una propuesta según los módulos y aportes previos del equipo.
+### Fase 4: monitoreo
 
-### Dilan Holguín Mazo (`Dilan-Holguin`)
+- Agregar `fase-4/` y registrar cada intento de `/predict`, incluidos los rechazados, con fecha/hora, estado HTTP, versión y predicción. Conservar el registro entre ejecuciones y guardar una sola fila por solicitud.
+- Crear un script que muestre total de solicitudes y porcentaje de fallos HTTP 4xx/5xx. Con registro vacío, mostrar total 0 y “sin solicitudes”.
+- Reutilizar dos versiones anteriores, indicar cuál usa la API y documentar cómo volver a la anterior.
+- Incluir una política breve de reentrenamiento y un reporte basado en una ejecución real.
 
-**Fase 3: predicción y contrato de la API**
+## Estado del repositorio
 
-- Crear la estructura de `fase-3/` y el contrato JSON usando las columnas de `fase-2/src/config.py`.
-- Implementar `GET /health` y `POST /predict`. La predicción debe reutilizar el modelo y el preprocesamiento de Fase 2; responder con el valor y el identificador de la versión usada.
-- Validar campos requeridos y tipos; admitir nulos según las reglas existentes; devolver errores comprensibles y un error de servicio si no está disponible el modelo configurado.
-- Dejar por escrito el contrato de solicitud y respuesta para que el resto del equipo integre entrenamiento, cliente y pruebas.
+`develop` ya quedó sincronizada con los cambios finales de Fase 2 mediante el PR #16. El plan fue agregado a `develop` mediante el PR #17. Las nuevas ramas de trabajo deben crearse desde la versión actualizada de `develop`.
 
-**Fase 4: registro de solicitudes**
+## Reparto: un PR por integrante
 
-- Implementar el registro persistente de cada intento de `/predict`, tanto válido como rechazado, con fecha/hora, estado HTTP, versión y predicción. En errores, dejar vacíos los valores que no existan.
-- Integrar el registro para que cada intento produzca exactamente una fila, incluso cuando el framework rechace la entrada antes de ejecutar la predicción.
+El profesor define los entregables, pero no asigna tareas por persona. Este reparto es una propuesta basada en los módulos que cada integrante trabajó en Fase 2. Cada persona prepara **un solo PR** con sus contribuciones de Fase 3 y Fase 4.
 
-### Santiago Rendón Rivera (`patomomo-dev`)
+### 1. Dilan Holguín Mazo (`Dilan-Holguin`)
 
-**Fase 3: entrenamiento y pruebas de API**
+**Responsabilidad: servicio de predicción y registro de solicitudes**
 
-- Implementar `POST /train` reutilizando el entrenamiento de Fase 2, con los datos, objetivo y semilla del proyecto.
-- Generar una versión disponible, guardar modelo, métricas y metadatos, conservar las versiones anteriores y devolver el identificador creado con HTTP 200 o 201.
-- Añadir las tres pruebas requeridas con pytest: `/health` exitoso, predicción válida que devuelva predicción y versión, y rechazo de una solicitud sin un campo requerido.
-- Documentar una ejecución manual de `/train` que compruebe que la nueva versión quedó guardada.
+- En su PR, crear el núcleo de `fase-3/` y fijar el contrato JSON.
+- Implementar `GET /health` y `POST /predict` sobre el modelo y preprocesamiento existentes. Responder con la predicción y el identificador de la versión.
+- Validar las columnas y tipos requeridos, admitir nulos con las reglas de Fase 2 y responder con códigos de error comprensibles, incluyendo el caso de modelo no disponible.
+- En el mismo PR, agregar el registro persistente que usará Fase 4 e integrarlo con `/predict`. Registrar solicitudes válidas y rechazadas, exactamente una vez por intento.
+- Acordar y documentar el formato del registro antes de que Rendón implemente el monitor. Campos mínimos: `fecha_hora`, `estado_http`, `version`, `prediccion`.
 
-**Fase 4: métricas de operación**
+### 2. Santiago Rendón Rivera (`patomomo-dev`)
 
-- Crear un script que lea el registro y muestre total de solicitudes y porcentaje fallido; contar como fallidas las respuestas 4xx y 5xx.
-- Cubrir con pruebas el registro vacío: total 0 y porcentaje informado como “sin solicitudes”.
-- Verificar el caso de referencia: dos predicciones válidas y una solicitud inválida deben producir tres filas y 33,3 % de fallos.
+**Responsabilidad: entrenamiento por API y métricas de monitoreo**
 
-### Santiago Duarte Triana (`santiagodutr`)
+- En un solo PR, añadir `POST /train` reutilizando el entrenamiento de Fase 2. Generar un identificador de versión disponible, persistir los tres artefactos, conservar versiones previas y devolver el identificador.
+- Añadir las tres pruebas pytest solicitadas para `/health`, `/predict` válido y campo obligatorio ausente. Documentar además una ejecución manual de `/train` que muestre la versión creada.
+- En el mismo PR, crear el script que lee el registro acordado con Dilan y calcula total de solicitudes y porcentaje 4xx/5xx.
+- Probar el archivo vacío y el caso de dos predicciones válidas más una inválida: tres solicitudes y 33,3 % de fallos.
 
-**Fase 3: Docker, cliente y guía de uso**
+### 3. Santiago Duarte Triana (`santiagodutr`)
 
-- Añadir en `fase-3/` el Dockerfile actualizado y las dependencias necesarias. El contenedor debe arrancar el servidor escuchando en `0.0.0.0:8000`; documentar el puerto y los montajes persistentes de datos y modelos.
-- Crear un cliente pequeño en Python o un archivo de comandos `curl` que envíe al menos un registro del CSV de ejemplo a `/predict`.
-- Documentar instalación, construcción y arranque del contenedor, selección de una versión, ejemplos de `/health`, `/predict` y `/train`, y la evidencia manual.
+**Responsabilidad: Docker, cliente y documentación de ambas fases**
 
-**Fase 4: persistencia en Docker y reporte**
+- En un solo PR, agregar el Dockerfile de `fase-3/`, las dependencias y el cliente Python o `curl`. El contenedor debe iniciar la API en `0.0.0.0:8000`, publicar el puerto y montar datos y modelos.
+- Documentar en `fase-3/README.md` la construcción, arranque, rutas, selección de versión y ejemplos reales de solicitud y respuesta.
+- Extender los montajes de Docker para conservar el registro de Fase 4 entre ejecuciones.
+- Crear `fase-4/README.md` con el reporte de una ejecución real, muestra del registro, las dos versiones utilizadas, cómo volver a la versión anterior y una política de reentrenamiento de dos o tres frases.
+- Incluir en el reporte los datos observados: solicitudes enviadas, filas guardadas, total, porcentaje de fallos y explicación del resultado.
 
-- Montar el archivo de solicitudes en un volumen para conservarlo entre ejecuciones del contenedor.
-- Añadir `fase-4/README.md` con un reporte de la corrida real: solicitudes enviadas, filas del registro, total y porcentaje fallido, explicación breve, identificadores de dos versiones y cómo volver a la versión anterior.
-- Escribir una política de reentrenamiento de dos o tres frases: qué observación dispara la revisión, quién ejecuta `/train` y cómo se compara y activa la candidata. Incluir una muestra del registro.
+## Orden para trabajar y subir los PRs
 
-## Orden recomendado de ramas y PRs
+Los PR de cada integrante apuntan a `develop`. El orden respeta las dependencias entre los módulos y evita trabajar sobre una base desactualizada.
 
-Todos los PR de trabajo se abren hacia `develop`; se revisan antes de fusionarlos.
+1. **Completado:** PR #16 sincronizó `main` hacia `develop`; PR #17 agregó este plan.
+2. **Dilan, un PR:** API `/health` y `/predict` más el registro de solicitudes de Fase 4. Fusionar primero para fijar el contrato de predicción y el formato del registro.
+3. **Santiago Rendón, un PR:** `/train`, las pruebas de API, el script de monitoreo y sus pruebas. Crear la rama desde el `develop` que ya contiene el PR de Dilan.
+4. **Santiago Duarte, un PR:** Docker, cliente, documentación de Fase 3, volumen del registro y reporte de Fase 4. Crear la rama desde el `develop` que ya contiene los PR anteriores.
+5. **Integración final:** desde una copia limpia, construir y ejecutar el contenedor, llamar `/health`, enviar una predicción, entrenar una versión, correr pytest y hacer la prueba de monitoreo con dos solicitudes válidas y una inválida.
+6. Abrir y revisar un PR de `develop` hacia `main`. Tras fusionarlo, marcar la entrega de las fases 3 y 4 con una etiqueta nueva, sin modificar `entrega-2`.
 
-1. **Completado — sincronización de ramas:** PR #16 de `main` hacia `develop`, incorporando la advertencia de columnas extra y la actualización de pruebas de Fase 2. Fusionado en `a103348`.
-2. **API base — Dilan:** contrato, `/health` y `/predict`. Fusionar primero porque fija el esquema que usarán las pruebas, el cliente y el contenedor.
-3. **Entrenamiento y pruebas — Santiago Rendón:** `/train` y las tres pruebas de API. Fusionar después de acordar el contrato de la API.
-4. **Docker y cliente — Santiago Duarte:** Dockerfile, dependencias, cliente y README de Fase 3. Fusionar cuando las rutas y comandos estén estables.
-5. **Registro — Dilan:** incorporar el registro de intentos válidos e inválidos en `/predict`, sobre la API integrada.
-6. **Métricas — Santiago Rendón:** script y pruebas de monitoreo, usando el formato de registro ya acordado en el paso 5.
-7. **Persistencia y reporte — Santiago Duarte:** volumen Docker, corrida de dos solicitudes válidas y una inválida, muestra del registro y reporte final. Este PR depende de los pasos 5 y 6.
-8. **Cierre:** ejecutar la verificación desde una copia limpia, abrir un PR de `develop` hacia `main`, fusionarlo y marcar la entrega de Fases 3 y 4 con un identificador nuevo, sin mover ni reemplazar la etiqueta `entrega-2`.
+Los integrantes pueden trabajar en paralelo en archivos separados si acuerdan antes el contrato de la API, el formato del registro y el comando de inicio. Para abrir y fusionar los PR sin conflictos, cada rama debe incorporar el `develop` actualizado y los PR deben integrarse en el orden indicado.
 
-## Lista de aceptación antes del PR final
+## Lista de aceptación antes de la entrega
 
 ### Fase 3
 
-- [ ] `GET /health` devuelve HTTP 200 y un JSON de estado.
-- [ ] Una predicción válida devuelve valor y versión; una entrada sin campo obligatorio devuelve 400 o 422 con el nombre del campo.
-- [ ] Los tipos incompatibles y el modelo no disponible producen errores comprensibles (400/422 y 503, respectivamente).
-- [ ] `/train` crea y persiste una versión nueva con sus tres artefactos y no sobrescribe versiones anteriores.
-- [ ] Pasan las tres pruebas pytest indicadas.
-- [ ] El cliente de ejemplo funciona contra el contenedor y el README muestra una solicitud y respuesta reales.
+- [ ] `/health` devuelve HTTP 200 y un JSON de estado.
+- [ ] `/predict` devuelve predicción y versión para una entrada válida; si falta una variable, indica cuál y responde 400 o 422.
+- [ ] Tipos incompatibles y modelo ausente producen errores comprensibles (400/422 y 503, respectivamente).
+- [ ] `/train` guarda una versión nueva con modelo, métricas y metadatos sin sobrescribir las anteriores.
+- [ ] Pasan las tres pruebas pytest y queda documentada la comprobación manual de `/train`.
+- [ ] El cliente de ejemplo funciona contra el contenedor y README muestra una solicitud y respuesta reales.
 
 ### Fase 4
 
-- [ ] Cada intento de `/predict`, incluidos los rechazos, se registra una sola vez y el archivo sobrevive al reinicio del contenedor.
-- [ ] El monitor calcula total y porcentaje 4xx/5xx; maneja correctamente un archivo vacío.
-- [ ] El ensayo de dos solicitudes válidas y una inválida produce tres registros y 33,3 % de fallos.
-- [ ] El reporte documenta la ejecución observada, la política de reentrenamiento, las dos versiones y cómo cambiar la versión activa.
-- [ ] Desde una copia limpia se reconstruye el contenedor, se ejecutan pruebas y se repite la demostración.
+- [ ] Cada intento de `/predict`, incluido el rechazado, genera una fila con los campos acordados; no se duplica ni se pierde entre reinicios.
+- [ ] El monitor calcula total y porcentaje 4xx/5xx; un registro vacío produce total 0 y “sin solicitudes”.
+- [ ] Dos solicitudes válidas y una inválida producen tres filas y 33,3 % de fallos.
+- [ ] El reporte contiene los resultados reales, la política de reentrenamiento, dos versiones y cómo seleccionar la anterior.
+- [ ] Otra persona puede reconstruir el contenedor y repetir la demostración siguiendo el README.
 
-## Alcance y calendario
+## Fechas y alcance opcional
 
-Las especificaciones no fijan fechas límite ni exigen despliegue en la nube, tableros gráficos o reentrenamiento automático; esos elementos son opcionales. El equipo debe acordar las fechas según el orden y las dependencias anteriores.
+Las especificaciones no fijan fechas límite. El despliegue en la nube, los tableros gráficos y el reentrenamiento automático son opcionales; el equipo acuerda las fechas con base en el orden anterior.
 
 ## Fuentes
 
