@@ -220,3 +220,4 @@ __marimo__/
 # Fase 2: salidas generadas (D11). models/v1, models/v2 y data/ SI se versionan.
 fase-2/outputs/
 fase-2/models/v-docker/
+fase-4/logs/
