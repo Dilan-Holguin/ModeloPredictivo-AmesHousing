@@ -82,9 +82,22 @@ def test_versionamiento_no_sobrescribe(tmp_path):
     out_dir = tmp_path / "models"
     out_dir.mkdir()
     
-    subprocess.run([sys.executable, "train.py", "--data", "tests/sample_train.csv", "--target", "SalePrice", "--output-dir", str(out_dir), "--version", "v_test"])
+    # 1. Primer entrenamiento (debe ser exitoso)
+    primer_intento = subprocess.run([
+        sys.executable, "train.py", 
+        "--data", "tests/sample_train.csv", 
+        "--target", "SalePrice", 
+        "--output-dir", str(out_dir), 
+        "--version", "v_test"
+    ], capture_output=True)
     
-    result = subprocess.run([
+    assert primer_intento.returncode == 0
+    assert (out_dir / "v_test" / "modelo.joblib").exists()
+    assert (out_dir / "v_test" / "metrics.json").exists()
+    assert (out_dir / "v_test" / "metadata.json").exists()
+    
+    # 2. Segundo entrenamiento con la misma versión (debe fallar)
+    segundo_intento = subprocess.run([
         sys.executable, "train.py",
         "--data", "tests/sample_train.csv",
         "--target", "SalePrice",
@@ -92,4 +105,4 @@ def test_versionamiento_no_sobrescribe(tmp_path):
         "--version", "v_test"
     ], capture_output=True)
     
-    assert result.returncode != 0
+    assert segundo_intento.returncode != 0

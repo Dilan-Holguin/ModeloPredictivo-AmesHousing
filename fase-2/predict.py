@@ -17,6 +17,14 @@ def main():
         df = load_data(args.input)
         validate_columns(df, FEATURE_COLUMNS)
 
+        columnas_extra = [column for column in df.columns if column not in FEATURE_COLUMNS]
+        if columnas_extra:
+            print(
+                "Aviso: estas columnas adicionales no se usarán para predecir: "
+                + ", ".join(columnas_extra),
+                file=sys.stderr,
+            )
+
         ids = df['Id'] if 'Id' in df.columns else pd.Series(range(1, len(df) + 1), name='Id')
 
         df_clean = limpiar_faltantes(df)
