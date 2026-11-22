@@ -1,0 +1,12 @@
+.git/
+.gitignore
+fase-1/
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+fase-2/outputs/
+fase-2/models/v-docker/
+fase-4/logs/
