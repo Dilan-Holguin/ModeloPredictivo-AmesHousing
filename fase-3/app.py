@@ -8,6 +8,9 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
+import re
+import threading
+from argparse import Namespace
 
 import pandas as pd
 from fastapi import FastAPI, Request
@@ -29,10 +32,16 @@ from src.config import CATEGORICAL_COLUMNS, FEATURE_COLUMNS, NUMERIC_COLUMNS  # 
 from src.data import validate_columns, validate_numeric_columns  # noqa: E402
 from src.model_io import load_model  # noqa: E402
 from src.preprocessing import limpiar_faltantes  # noqa: E402
+from train import train as run_training  # noqa: E402
 
 
 DEFAULT_MODEL_PATH = PHASE2_PATH / "models" / "v1" / "modelo.joblib"
 MODEL_PATH_ENV = "MODEL_PATH"
+MODELS_DIR_ENV = "MODELS_DIR"
+TRAIN_DATA_ENV = "TRAIN_DATA_PATH"
+DEFAULT_MODELS_DIR = PHASE2_PATH / "models"
+DEFAULT_TRAIN_DATA = PHASE2_PATH / "data" / "train.csv"
+_TRAIN_LOCK = threading.Lock()
 app = FastAPI(title="Ames Housing API", version="1.0.0")
 
 
@@ -154,3 +163,79 @@ async def predict(request: Request) -> JSONResponse:
         )
 
     return _recorded_response(200, prediction=prediction, version=version)
+
+
+def _resolve(env_name: str, default: Path) -> Path:
+    configured = Path(os.environ.get(env_name, str(default)))
+    return configured if configured.is_absolute() else REPOSITORY_ROOT / configured
+
+
+def _next_version(models_dir: Path) -> str:
+    """Devuelve el siguiente identificador vN libre (ignora carpetas no numeradas)."""
+    numbers = [
+        int(match.group(1))
+        for entry in models_dir.glob("v*")
+        if entry.is_dir() and (match := re.fullmatch(r"v(\d+)", entry.name))
+    ]
+    return f"v{max(numbers, default=0) + 1}"
+
+
+@app.post("/train")
+async def train_model(request: Request) -> JSONResponse:
+    """Entrena con la configuración de Fase 2 y guarda una versión nueva e inmutable.
+
+    Cuerpo JSON opcional: {"version": "v3", "seed": 42, "test_size": 0.2}.
+    """
+    raw = await request.body()
+    try:
+        options = json.loads(raw) if raw.strip() else {}
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JSONResponse({"detail": "El cuerpo de la solicitud no contiene JSON válido."}, status_code=422)
+    if not isinstance(options, dict):
+        return JSONResponse({"detail": "El cuerpo debe ser un objeto JSON."}, status_code=422)
+
+    seed = options.get("seed", 42)
+    test_size = options.get("test_size", 0.2)
+    version = options.get("version")
+    if isinstance(seed, bool) or not isinstance(seed, int):
+        return JSONResponse({"detail": "'seed' debe ser un entero."}, status_code=422)
+    if isinstance(test_size, bool) or not isinstance(test_size, (int, float)) or not 0 < test_size < 1:
+        return JSONResponse({"detail": "'test_size' debe ser un número entre 0 y 1."}, status_code=422)
+    if version is not None and (not isinstance(version, str) or not re.fullmatch(r"[A-Za-z0-9._-]+", version)):
+        return JSONResponse({"detail": "'version' debe ser un texto simple, por ejemplo v3."}, status_code=422)
+
+    models_dir = _resolve(MODELS_DIR_ENV, DEFAULT_MODELS_DIR)
+    data_path = _resolve(TRAIN_DATA_ENV, DEFAULT_TRAIN_DATA)
+
+    with _TRAIN_LOCK:  # evita que dos entrenamientos elijan la misma versión
+        version = version or _next_version(models_dir)
+        if (models_dir / version).exists():
+            return JSONResponse(
+                {"detail": f"La versión '{version}' ya existe y no puede sobrescribirse."},
+                status_code=409,
+            )
+        args = Namespace(
+            data=str(data_path), target="SalePrice", output_dir=str(models_dir),
+            version=version, seed=seed, test_size=float(test_size),
+        )
+        try:
+            version_path = run_training(args)
+        except FileNotFoundError as exc:
+            return JSONResponse({"detail": f"No se encontraron los datos de entrenamiento: {exc}"}, status_code=503)
+        except FileExistsError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+        except ValueError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=422)
+        except Exception:
+            return JSONResponse({"detail": "El entrenamiento falló."}, status_code=500)
+
+    metrics = json.loads((version_path / "metrics.json").read_text(encoding="utf-8"))
+    return JSONResponse(
+        {
+            "mensaje": "Modelo entrenado y guardado correctamente.",
+            "version": version,
+            "artefactos": ["modelo.joblib", "metrics.json", "metadata.json"],
+            "metricas_dolares": metrics["modelo"]["dolares"],
+        },
+        status_code=200,
+    )
