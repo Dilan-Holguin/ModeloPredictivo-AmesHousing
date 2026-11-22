@@ -1,66 +1,35 @@
 # Comprobación manual de `POST /train`
 
-## 1. Arranque del servidor
+Se usa una copia de `v1` y `v2` (variable `MODELS_DIR`) para no agregar versiones al repositorio durante la prueba. Sin esa variable, `/train` guarda en `fase-2/models/`.
 
-Desde el directorio `fase-3/`, iniciar la API con Uvicorn:
+## 1. Arranque (Docker, desde la raíz del repositorio)
 
 ```bash
-uvicorn app:app --host 0.0.0.0 --port 8000
+docker run --rm -v "$PWD:/repo" -w /repo/fase-3 python:3.12-slim sh -c \
+ "pip install -q -r requirements.txt && mkdir /m && cp -r ../fase-2/models/v1 ../fase-2/models/v2 /m/ \
+  && MODELS_DIR=/m uvicorn app:app --host 0.0.0.0 --port 8000"
 ```
 
-## 2. Solicitud de entrenamiento de una nueva versión
+## 2. Solicitudes y respuestas reales
 
-En una segunda terminal, enviar una petición `POST` al endpoint `/train` indicando una semilla aleatoria (al omitir `version`, el servicio asigna automáticamente la siguiente versión disponible, `v3`):
-
-**Con `curl`:**
-```bash
-curl -X POST http://localhost:8000/train \
-  -H "Content-Type: application/json" \
-  -d '{"seed": 123}'
-```
-
-**Con PowerShell (`Invoke-RestMethod`):**
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/train" `
-  -Method Post `
-  -ContentType "application/json" `
-  -Body '{"seed": 123}' | ConvertTo-Json
-```
-
-## 3. Respuesta HTTP 200 obtenida
+`POST /train` con `{"seed": 123}` (sin `version`, se asigna la siguiente libre):
 
 ```json
-{
-  "mensaje": "Modelo entrenado y guardado correctamente.",
-  "version": "v3",
-  "artefactos": [
-    "modelo.joblib",
-    "metrics.json",
-    "metadata.json"
-  ]
-}
+200 {"mensaje":"Modelo entrenado y guardado correctamente.","version":"v3","artefactos":["modelo.joblib","metrics.json","metadata.json"],"metricas_dolares":{"mae":15377.238247126214,"rmse":24721.63605392982,"r2":0.9011007496981781}}
 ```
 
-## 4. Verificación de persistencia y conservación de versiones anteriores
+Repetir con `{"version": "v3"}`:
 
-Al inspeccionar el directorio de modelos (`fase-2/models/`):
-
-```text
-fase-2/models/
-├── v1/
-│   ├── metadata.json
-│   ├── metrics.json
-│   └── modelo.joblib
-├── v2/
-│   ├── metadata.json
-│   ├── metrics.json
-│   └── modelo.joblib
-└── v3/
-    ├── metadata.json
-    ├── metrics.json
-    └── modelo.joblib
+```json
+409 {"detail":"La versión 'v3' ya existe y no puede sobrescribirse."}
 ```
 
-- Las versiones previas (`v1` y `v2`) se conservan intactas.
-- La nueva versión (`v3`) persiste en disco con su modelo serializado, métricas y metadatos completos.
-- Si se envía nuevamente una solicitud con `"version": "v3"`, la API rechaza la sobrescritura devolviendo **HTTP 409 Conflict** (`"La versión 'v3' ya existe y no puede sobrescribirse."`).
+Con `{"seed": "x"}`:
+
+```json
+422 {"detail":"'seed' debe ser un entero."}
+```
+
+## 3. Persistencia
+
+Contenido de `MODELS_DIR` tras la primera solicitud: `v1/`, `v2/` (intactas) y `v3/` con `modelo.joblib`, `metrics.json` y `metadata.json`.
